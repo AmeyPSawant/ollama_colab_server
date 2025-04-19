@@ -1,5 +1,5 @@
 name: Mirror to GitLab
-on: [push, create]  # Triggers on pushes AND new branches/tags
+on: [push]  # Triggers on every push to any branch
 
 jobs:
   mirror:
@@ -7,14 +7,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for all branches and tags
+          fetch-depth: 0  # Full clone (avoids shallow push errors)
 
-      - name: Push to GitLab        
+      - name: Push to GitLab
         run: |
-          git remote add gitlab https://${GITLAB_USERNAME}:${GITLAB_TOKEN}@gitlab.com/${GITLAB_REPO}.git
-          git push --mirror gitlab  
-        env:
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          GITLAB_USERNAME: "ameypsawant"
-          GITLAB_REPO: "ameypsawant/ollama_colab_server"
-        
+          git remote add gitlab https://gitlab-ci-token:${{ secrets.GITLAB_TOKEN }}@gitlab.com/ameypsawant/ollama_colab_server.git
+          git config --global user.name "GitHub Mirror Bot"
+          git config --global user.email "actions@github.com"
+          git push gitlab HEAD:main --force-with-lease
